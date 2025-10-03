@@ -28,7 +28,7 @@ Ikuti langkah-langkah berikut untuk menjalankan server di mesin lokal Anda.
 
 ### 1. Clone Repositori
 ```bash
-git clone [https://github.com/user/uts-kel-8-ar-backend.git](https://github.com/user/uts-kel-8-ar-backend.git)
+git clone https://github.com/krauchelli/uts-kel-7-ar-backend.git
 cd uts-kel-8-ar-backend
 ```
 
