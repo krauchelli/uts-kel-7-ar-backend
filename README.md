@@ -1,4 +1,4 @@
-# Backend Service for UTS Augmented Reality - Kelompok 8
+# Backend Service for UTS Augmented Reality - Kelompok 7
 
 Ini adalah layanan backend yang dibangun menggunakan Python dan Flask untuk mendukung aplikasi Augmented Reality (AR) dalam proyek UTS. Layanan ini berfungsi sebagai otak dari aplikasi, menerima data gambar dari aplikasi Unity, memprosesnya menggunakan model *Machine Learning*, dan mengembalikan hasil klasifikasi.
 
