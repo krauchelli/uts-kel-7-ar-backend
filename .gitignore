@@ -1,0 +1,30 @@
+# Folder Virtual Environment
+# Mengabaikan folder yang berisi paket Python spesifik untuk mesin lokal.
+/venv/
+/env/
+/.venv/
+/.env/
+
+# Cache Python
+# File-file ini dibuat secara otomatis oleh Python dan tidak perlu dilacak.
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# File Konfigurasi IDE/Editor
+.vscode/
+.idea/
+*.swp
+
+# File Sensitif
+# JANGAN PERNAH memasukkan file environment yang berisi kunci API atau kata sandi ke Git.
+*.env
+
+# File Sistem Operasi
+.DS_Store
+
+# Artefak Build & Instalasi
+/dist/
+/build/
+*.egg-info/
