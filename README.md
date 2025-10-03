@@ -29,7 +29,7 @@ Ikuti langkah-langkah berikut untuk menjalankan server di mesin lokal Anda.
 ### 1. Clone Repositori
 ```bash
 git clone https://github.com/krauchelli/uts-kel-7-ar-backend.git
-cd uts-kel-8-ar-backend
+cd uts-kel-7-ar-backend
 ```
 
 ### 2. Buat dan Aktifkan Virtual Environment (venv)
