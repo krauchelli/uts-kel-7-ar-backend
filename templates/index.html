@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gender Detection - Image Upload</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Arial", sans-serif;
+        background-color: #f5f5f5;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        width: 90%;
+        border: 1px solid #e0e0e0;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+      }
+
+      .upload-area {
+        border: 2px dashed #ccc;
+        border-radius: 6px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        transition: border-color 0.2s ease;
+      }
+
+      .upload-area:hover {
+        border-color: #999;
+        background-color: #fafafa;
+      }
+
+      .upload-area.dragover {
+        border-color: #666;
+        background-color: #f0f0f0;
+      }
+
+      input[type="file"] {
+        display: none;
+      }
+
+      .upload-btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 24px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.2s ease;
+      }
+
+      .upload-btn:hover {
+        background-color: #0056b3;
+      }
+
+      .preview-container {
+        margin: 1rem 0;
+        text-align: center;
+      }
+
+      .preview-image {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .result-container {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        display: none;
+      }
+
+      .face-result {
+        background: #f8f9fa;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-radius: 4px;
+        border-left: 3px solid #007bff;
+      }
+
+      .gender {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .confidence {
+        color: #666;
+        margin-top: 0.5rem;
+      }
+
+      .error {
+        color: #e74c3c;
+        background-color: #fdf2f2;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border-left: 4px solid #e74c3c;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        margin: 1rem 0;
+      }
+
+      .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007bff;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .nav-links {
+        text-align: center;
+        margin-top: 2rem;
+      }
+
+      .nav-links a {
+        color: #007bff;
+        text-decoration: none;
+        margin: 0 1rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+      }
+
+      .nav-links a:hover {
+        background-color: #007bff;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Gender Detection</h1>
+
+      <div class="upload-area" id="uploadArea">
+        <p>Click to upload or drag and drop an image</p>
+        <button
+          class="upload-btn"
+          onclick="document.getElementById('imageInput').click()"
+        >
+          Choose Image
+        </button>
+        <input type="file" id="imageInput" accept="image/*" />
+      </div>
+
+      <div class="preview-container" id="previewContainer"></div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Analyzing image...</p>
+      </div>
+
+      <div class="result-container" id="resultContainer"></div>
+
+      <div class="nav-links">
+        <a href="/webcam">Use Webcam</a>
+      </div>
+    </div>
+
+    <script>
+      const uploadArea = document.getElementById("uploadArea");
+      const imageInput = document.getElementById("imageInput");
+      const previewContainer = document.getElementById("previewContainer");
+      const resultContainer = document.getElementById("resultContainer");
+      const loading = document.getElementById("loading");
+
+      // Drag and drop functionality
+      uploadArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        uploadArea.classList.add("dragover");
+      });
+
+      uploadArea.addEventListener("dragleave", () => {
+        uploadArea.classList.remove("dragover");
+      });
+
+      uploadArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove("dragover");
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleFile(files[0]);
+        }
+      });
+
+      imageInput.addEventListener("change", (e) => {
+        if (e.target.files.length > 0) {
+          handleFile(e.target.files[0]);
+        }
+      });
+
+      function handleFile(file) {
+        if (!file.type.startsWith("image/")) {
+          showError("Please select a valid image file");
+          return;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+
+        // Upload and analyze
+        uploadImage(file);
+      }
+
+      function uploadImage(file) {
+        const formData = new FormData();
+        formData.append("image", file);
+
+        loading.style.display = "block";
+        resultContainer.style.display = "none";
+
+        fetch("/upload", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            loading.style.display = "none";
+
+            if (data.success) {
+              showResults(data);
+            } else {
+              showError(data.error || "An error occurred");
+            }
+          })
+          .catch((error) => {
+            loading.style.display = "none";
+            showError("Network error: " + error.message);
+          });
+      }
+
+      function showResults(data) {
+        let html = `<h3>Detection Results</h3>`;
+        html += `<p><strong>Faces detected:</strong> ${data.faces_detected}</p>`;
+
+        if (data.results && data.results.length > 0) {
+          data.results.forEach((result, index) => {
+            const confidencePercent = (result.confidence * 100).toFixed(1);
+            html += `
+                        <div class="face-result">
+                            <div class="gender">Face ${index + 1}: ${
+              result.gender
+            }</div>
+                            <div class="confidence">Confidence: ${confidencePercent}%</div>
+                        </div>
+                    `;
+          });
+        }
+
+        resultContainer.innerHTML = html;
+        resultContainer.style.display = "block";
+      }
+
+      function showError(message) {
+        resultContainer.innerHTML = `<div class="error">${message}</div>`;
+        resultContainer.style.display = "block";
+      }
+    </script>
+  </body>
+</html>
