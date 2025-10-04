@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gender Detection - Webcam</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Arial", sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 1rem;
+      }
+
+      .container {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        max-width: 900px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+      }
+
+      .webcam-container {
+        position: relative;
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      #video {
+        width: 100%;
+        max-width: 640px;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .controls {
+        text-align: center;
+        margin: 1rem 0;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin: 0 0.5rem;
+        transition: transform 0.2s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+
+      .btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn.stop {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      }
+
+      .result-overlay {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 640px;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .face-box {
+        position: absolute;
+        border: 3px solid #00ff00;
+        border-radius: 5px;
+        background: rgba(0, 255, 0, 0.1);
+      }
+
+      .face-label {
+        position: absolute;
+        top: -30px;
+        left: 0;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .result-container {
+        margin-top: 1rem;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        min-height: 100px;
+      }
+
+      .face-result {
+        background: white;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .gender-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .gender {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .confidence {
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .error {
+        color: #e74c3c;
+        background-color: #fdf2f2;
+        padding: 1rem;
+        border-radius: 8px;
+        margin: 1rem 0;
+        border-left: 4px solid #e74c3c;
+      }
+
+      .nav-links {
+        text-align: center;
+        margin-top: 2rem;
+      }
+
+      .nav-links a {
+        color: #667eea;
+        text-decoration: none;
+        margin: 0 1rem;
+        padding: 0.5rem 1rem;
+        border: 2px solid #667eea;
+        border-radius: 20px;
+        transition: all 0.3s ease;
+      }
+
+      .nav-links a:hover {
+        background-color: #667eea;
+        color: white;
+      }
+
+      .status {
+        text-align: center;
+        margin: 1rem 0;
+        padding: 0.5rem;
+        border-radius: 5px;
+      }
+
+      .status.ready {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      .status.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+
+      .auto-capture {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 1rem 0;
+      }
+
+      .auto-capture input[type="checkbox"] {
+        margin-right: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Real-time Gender Detection</h1>
+
+      <div class="webcam-container">
+        <video id="video" autoplay muted></video>
+        <div class="result-overlay" id="resultOverlay"></div>
+      </div>
+
+      <div class="status" id="status">Click "Start Camera" to begin</div>
+
+      <div class="controls">
+        <button class="btn" id="startBtn" onclick="startCamera()">
+          Start Camera
+        </button>
+        <button class="btn stop" id="stopBtn" onclick="stopCamera()" disabled>
+          Stop Camera
+        </button>
+        <button class="btn" id="captureBtn" onclick="captureImage()" disabled>
+          Capture & Analyze
+        </button>
+      </div>
+
+      <div class="auto-capture">
+        <input
+          type="checkbox"
+          id="autoCapture"
+          onchange="toggleAutoCapture()"
+        />
+        <label for="autoCapture">Auto-capture every 2 seconds</label>
+      </div>
+
+      <div class="result-container" id="resultContainer">
+        <p style="text-align: center; color: #666">
+          Detection results will appear here
+        </p>
+      </div>
+
+      <div class="nav-links">
+        <a href="/">Upload Image</a>
+      </div>
+    </div>
+
+    <script>
+      let video = document.getElementById("video");
+      let resultOverlay = document.getElementById("resultOverlay");
+      let resultContainer = document.getElementById("resultContainer");
+      let status = document.getElementById("status");
+      let stream = null;
+      let isCapturing = false;
+      let autoCapture = false;
+      let autoCaptureInterval = null;
+
+      async function startCamera() {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+            },
+          });
+          video.srcObject = stream;
+
+          document.getElementById("startBtn").disabled = true;
+          document.getElementById("stopBtn").disabled = false;
+          document.getElementById("captureBtn").disabled = false;
+
+          status.className = "status ready";
+          status.textContent =
+            "Camera ready! Click capture to analyze or enable auto-capture";
+
+          // Start auto-capture if enabled
+          if (document.getElementById("autoCapture").checked) {
+            startAutoCapture();
+          }
+        } catch (error) {
+          console.error("Error accessing camera:", error);
+          status.className = "status error";
+          status.textContent = "Error accessing camera: " + error.message;
+        }
+      }
+
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach((track) => track.stop());
+          stream = null;
+        }
+
+        video.srcObject = null;
+
+        document.getElementById("startBtn").disabled = false;
+        document.getElementById("stopBtn").disabled = true;
+        document.getElementById("captureBtn").disabled = true;
+
+        status.className = "status";
+        status.textContent = "Camera stopped";
+
+        // Clear overlay
+        resultOverlay.innerHTML = "";
+
+        // Stop auto-capture
+        if (autoCaptureInterval) {
+          clearInterval(autoCaptureInterval);
+          autoCaptureInterval = null;
+        }
+      }
+
+      function toggleAutoCapture() {
+        autoCapture = document.getElementById("autoCapture").checked;
+
+        if (autoCapture && stream) {
+          startAutoCapture();
+        } else if (autoCaptureInterval) {
+          clearInterval(autoCaptureInterval);
+          autoCaptureInterval = null;
+        }
+      }
+
+      function startAutoCapture() {
+        if (autoCaptureInterval) {
+          clearInterval(autoCaptureInterval);
+        }
+
+        autoCaptureInterval = setInterval(() => {
+          if (!isCapturing) {
+            captureImage();
+          }
+        }, 2000);
+      }
+
+      function captureImage() {
+        if (!stream || isCapturing) return;
+
+        isCapturing = true;
+
+        // Create canvas to capture frame
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        context.drawImage(video, 0, 0);
+
+        // Convert to base64
+        const imageData = canvas.toDataURL("image/jpeg");
+
+        // Send to server
+        fetch("/predict_base64", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ image: imageData }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              showResults(data);
+              drawFaceBoxes(data.results);
+            } else {
+              showError(data.error || "An error occurred");
+            }
+            isCapturing = false;
+          })
+          .catch((error) => {
+            showError("Network error: " + error.message);
+            isCapturing = false;
+          });
+      }
+
+      function showResults(data) {
+        let html = `<h3>Live Detection Results</h3>`;
+        html += `<p><strong>Faces detected:</strong> ${data.faces_detected}</p>`;
+
+        if (data.results && data.results.length > 0) {
+          data.results.forEach((result, index) => {
+            const confidencePercent = (result.confidence * 100).toFixed(1);
+            const genderIcon = result.gender === "Male" ? "Male" : "Female";
+            html += `
+                        <div class="face-result">
+                            <div class="gender-info">
+                                <div class="gender">Face ${index + 1}: ${
+              result.gender
+            }</div>
+                                <div class="confidence">Confidence: ${confidencePercent}%</div>
+                            </div>
+                        </div>
+                    `;
+          });
+        }
+
+        resultContainer.innerHTML = html;
+      }
+
+      function drawFaceBoxes(results) {
+        resultOverlay.innerHTML = "";
+
+        if (!results || results.length === 0) return;
+
+        const videoRect = video.getBoundingClientRect();
+        const scaleX = video.offsetWidth / video.videoWidth;
+        const scaleY = video.offsetHeight / video.videoHeight;
+
+        results.forEach((result, index) => {
+          const bbox = result.bbox;
+          const faceBox = document.createElement("div");
+          faceBox.className = "face-box";
+
+          const x = bbox.x * scaleX;
+          const y = bbox.y * scaleY;
+          const width = bbox.width * scaleX;
+          const height = bbox.height * scaleY;
+
+          faceBox.style.left = x + "px";
+          faceBox.style.top = y + "px";
+          faceBox.style.width = width + "px";
+          faceBox.style.height = height + "px";
+
+          const label = document.createElement("div");
+          label.className = "face-label";
+          const confidencePercent = (result.confidence * 100).toFixed(1);
+          label.textContent = `${result.gender} (${confidencePercent}%)`;
+
+          faceBox.appendChild(label);
+          resultOverlay.appendChild(faceBox);
+        });
+      }
+
+      function showError(message) {
+        resultContainer.innerHTML = `<div class="error">${message}</div>`;
+        resultOverlay.innerHTML = "";
+      }
+
+      // Check if camera is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        status.className = "status error";
+        status.textContent = "Camera not supported in this browser";
+        document.getElementById("startBtn").disabled = true;
+      }
+    </script>
+  </body>
+</html>
