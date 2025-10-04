@@ -7,11 +7,13 @@ import cv2
 from . import services
 
 def handle_api_predict():
-    """Controller untuk endpoint /api/predict yang dibutuhkan Unity."""
+    """Controller untuk endpoint /api/predict dengan logika yang benar dan format respon standar."""
     try:
         data = request.get_json()
         if not data or 'image_data' not in data:
-            return jsonify({'error': 'field image_data dibutuhkan'}), 400
+            # Menggunakan abort untuk memicu error handler 400 secara eksplisit
+            from flask import abort
+            abort(400, description="Payload JSON harus berisi field 'image_data'.")
         
         image_data = data['image_data']
         
@@ -27,10 +29,16 @@ def handle_api_predict():
         if len(image_np.shape) == 3 and image_np.shape[2] == 3:
             image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
         
+        # Panggil service untuk deteksi wajah
         faces = services.detect_faces(image_np)
         
         if len(faces) == 0:
-            return jsonify({'error': 'Tidak ada wajah yang terdeteksi'}), 400
+            # Format respon error spesifik jika tidak ada wajah
+            return jsonify({
+                "statusCode": 400,
+                "message": "Tidak ada wajah yang terdeteksi di dalam gambar.",
+                "data": None
+            }), 400
             
         # Ambil wajah terbesar untuk diprediksi
         faces_with_area = [(face, face[2] * face[3]) for face in faces]
@@ -40,18 +48,25 @@ def handle_api_predict():
         x, y, w, h = largest_face
         face_img = image_np[y:y+h, x:x+w]
         
+        # Panggil service untuk prediksi gender
         gender, confidence = services.predict_gender(face_img)
         
         if gender is None:
-            return jsonify({'error': 'Gagal memprediksi gender'}), 500
+            # Ini adalah error server, jadi kita lemparkan agar ditangani middleware 500
+            raise RuntimeError("Gagal memprediksi gender setelah wajah terdeteksi.")
             
-        return jsonify({
-            'prediction': gender.lower(),
-            'confidence': round(confidence, 3)
-        })
+        # Format respon sukses dengan struktur baru
+        response = {
+            "statusCode": 200,
+            "message": "Prediksi berhasil dilakukan.",
+            "data": {
+                "prediction": gender.lower(),
+                "confidence": round(confidence, 3)
+            }
+        }
+        return jsonify(response), 200
 
     except Exception as e:
+        # Semua error lain akan ditangkap di sini dan dilemparkan ke middleware 500
         print(f"Internal server error: {e}")
-        return jsonify({'error': f'Internal server error: {str(e)}'}), 500
-
-# Anda bisa menambahkan controller lain untuk rute /upload dan /predict_base64 jika diperlukan
+        raise e

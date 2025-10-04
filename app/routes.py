@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, jsonify
 from . import controllers
 
 bp = Blueprint('main', __name__)
@@ -33,4 +33,12 @@ def api_predict_route():
 def health_check():
     from . import model
     model_status = "loaded" if model is not None else "not_loaded"
-    return {"status": "healthy", "model_status": model_status}
+    response = {
+        "statusCode": 200,
+        "message": "Server is healthy.",
+        "data": {
+            "status": "healthy",
+            "model_status": model_status
+        }
+    }
+    return jsonify(response), 200
