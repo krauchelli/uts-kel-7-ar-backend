@@ -70,3 +70,79 @@ def handle_api_predict():
         # Semua error lain akan ditangkap di sini dan dilemparkan ke middleware 500
         print(f"Internal server error: {e}")
         raise e
+    
+    # --- Controller untuk rute /upload ---
+def handle_upload():
+    """Menangani upload gambar dari form HTML dan mengembalikan hasil deteksi lengkap."""
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'Tidak ada file gambar yang disediakan'}), 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({'error': 'Tidak ada file yang dipilih'}), 400
+
+        image_bytes = file.read()
+        image = Image.open(io.BytesIO(image_bytes))
+        image_np = np.array(image)
+        
+        # Konversi RGB ke BGR untuk OpenCV
+        if len(image_np.shape) == 3 and image_np.shape[2] == 3:
+            image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+
+        faces = services.detect_faces(image_np)
+        
+        results = []
+        for (x, y, w, h) in faces:
+            face_img = image_np[y:y+h, x:x+w]
+            gender, confidence = services.predict_gender(face_img)
+            if gender:
+                results.append({
+                    'gender': gender,
+                    'confidence': confidence,
+                    'bbox': {'x': int(x), 'y': int(y), 'width': int(w), 'height': int(h)}
+                })
+
+        return jsonify({
+            'success': True,
+            'faces_detected': len(faces),
+            'results': results
+        })
+    except Exception as e:
+        return jsonify({'error': f'Error memproses gambar: {str(e)}'}), 500
+
+# --- Controller untuk rute /predict_base64 ---
+def handle_predict_base64():
+    """Menangani data gambar base64 (biasanya dari webcam) dan mengembalikan hasil deteksi lengkap."""
+    try:
+        data = request.get_json()
+        if 'image' not in data:
+            return jsonify({'error': 'Tidak ada data gambar yang disediakan'}), 400
+        
+        image_data = data['image'].split(',')[1] # Hapus prefix
+        image_bytes = base64.b64decode(image_data)
+        image = Image.open(io.BytesIO(image_bytes))
+        image_np = np.array(image)
+        
+        image_np = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)
+        
+        faces = services.detect_faces(image_np)
+        
+        results = []
+        for (x, y, w, h) in faces:
+            face_img = image_np[y:y+h, x:x+w]
+            gender, confidence = services.predict_gender(face_img)
+            if gender:
+                results.append({
+                    'gender': gender,
+                    'confidence': confidence,
+                    'bbox': {'x': int(x), 'y': int(y), 'width': int(w), 'height': int(h)}
+                })
+                
+        return jsonify({
+            'success': True,
+            'faces_detected': len(faces),
+            'results': results
+        })
+    except Exception as e:
+        return jsonify({'error': f'Error memproses gambar: {str(e)}'}), 500
