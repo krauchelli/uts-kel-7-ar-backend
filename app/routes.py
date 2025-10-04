@@ -18,15 +18,15 @@ def api_predict_route():
     return controllers.handle_api_predict()
 
 # Rute API lain dari file asli (bisa diimplementasikan controllernya jika perlu)
-# @bp.route('/upload', methods=['POST'])
-# def upload_route():
-#     # Logika untuk handle_upload()
-#     pass
+@bp.route('/upload', methods=['POST'])
+def upload_route():
+    # Logika untuk handle_upload()
+    pass
 
-# @bp.route('/predict_base64', methods=['POST'])
-# def predict_base64_route():
-#     # Logika untuk handle_predict_base64()
-#     pass
+@bp.route('/predict_base64', methods=['POST'])
+def predict_base64_route():
+    # Logika untuk handle_predict_base64()
+    pass
 
 # Rute untuk health check
 @bp.route('/health')
