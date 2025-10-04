@@ -1,8 +1,8 @@
 from flask import Flask
 from tensorflow.keras.models import load_model
-from config import model_path
 
-model = None # Initialize model variable
+# Definisikan variabel global untuk model
+model = None
 
 def create_app():
     """Application factory function."""
@@ -10,17 +10,20 @@ def create_app():
     
     app = Flask(__name__, template_folder='../templates')
 
-    # Load the AI model once when the app is created
-    print("Loading Keras model...")
-    model = load_model(model_path)
-    print("Model loaded successfully.")
+    # Muat model saat startup
+    try:
+        # Gunakan path absolut untuk keamanan
+        import os
+        basedir = os.path.abspath(os.path.dirname(__file__))
+        model_path = os.path.join(basedir, '..', 'model', 'model.h5')
+        
+        model = load_model(model_path)
+        print("Model AI berhasil dimuat!")
+    except Exception as e:
+        print(f"ERROR: Gagal memuat model AI: {e}")
 
-    # Register routes
+    # Registrasi Blueprints (rute)
     from . import routes
     app.register_blueprint(routes.bp)
-
-    # Register error handlers (middleware)
-    from . import middleware
-    middleware.register_error_handlers(app)
 
     return app
