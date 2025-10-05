@@ -1,223 +1,138 @@
-# Backend Service for UTS Augmented Reality - Kelompok 7
+# Layanan Backend untuk UTS Augmented Reality - Kelompok 7
 
-**REST API untuk deteksi gender menggunakan deep learning model dengan Flask untuk aplikasi Augmented Reality (AR).**
+Ini adalah layanan backend untuk proyek UTS Augmented Reality, dibangun dengan struktur Flask yang modular dan skalabel. Layanan ini menyediakan REST API yang berfungsi sebagai "otak" AI untuk aplikasi Unity, menangani deteksi wajah dan klasifikasi gender.
 
-Ini adalah layanan backend yang dibangun menggunakan Python dan Flask untuk mendukung aplikasi Augmented Reality (AR) dalam proyek UTS. Layanan ini berfungsi sebagai otak dari aplikasi, menerima data gambar dari aplikasi Unity, memprosesnya menggunakan model _Machine Learning_, dan mengembalikan hasil klasifikasi.
+## ✨ Fitur
 
----
-
-## Deskripsi Proyek
-
-Tujuan utama dari layanan ini adalah menyediakan REST API yang mampu:
-
-1. Menerima _request_ HTTP yang berisi gambar wajah dalam format Base64.
-2. Mengubah data Base64 kembali menjadi gambar.
-3. Melakukan pra-pemrosesan pada gambar agar sesuai dengan input model.
-4. Menjalankan inferensi menggunakan model TensorFlow untuk mengklasifikasikan gender.
-5. Mengirimkan kembali hasil prediksi dalam format JSON ke aplikasi Unity.
+* **Arsitektur Modular**: Logika dipisahkan secara bersih ke dalam *routes*, *controllers*, dan *services*, terinspirasi dari pola *framework* web modern.
+* **Logika AI Dua Tahap**: Mengimplementasikan alur kerja deteksi wajah terlebih dahulu menggunakan OpenCV, baru kemudian melakukan klasifikasi pada area wajah yang terdeteksi.
+* **Penanganan Error Terpusat**: Menggunakan *middleware* global untuk menangani error dari sisi klien (400) dan sisi server (500) dengan format respons JSON yang konsisten.
+* **Fasilitas Pengujian Lengkap**: Menyertakan antarmuka web sederhana untuk pengujian mudah melalui unggah file (`/`) dan webcam langsung (`/webcam`).
 
 ---
 
-## Prasyarat
+## 📂 Struktur Proyek
 
-Sebelum memulai, pastikan perangkat Anda telah terinstal:
+Proyek ini menggunakan pola *application factory* untuk organisasi yang lebih baik:
 
-- **Python 3.10**
-- `pip` (biasanya sudah terinstal bersama Python)
-- `git`
-
----
-
-## Setup dan Instalasi
-
-### Opsi 1: Quick Setup (Disarankan)
-
-```powershell
-# Setup lengkap dan langsung jalankan aplikasi
-.\quick_setup.bat
+```
+uts-kel-7-ar-backend/
+├── app/                  # Paket aplikasi utama
+│   ├── __init__.py       # Menginisialisasi aplikasi Flask (App Factory)
+│   ├── routes.py         # Mendefinisikan semua rute API dan halaman
+│   ├── controllers.py    # Menangani logika request/response
+│   ├── services.py       # Berisi logika bisnis inti (deteksi, prediksi)
+│   └── middleware.py     # Logika penanganan error global
+├── config.py             # File konfigurasi terpusat
+├── model/
+│   └── model.h5          # Model Keras yang sudah dilatih
+├── templates/            # File HTML untuk pengujian
+├── run.py                # Titik masuk (entry point) untuk memulai server
+└── requirements.txt      # Daftar dependensi Python
 ```
 
-**Ini akan otomatis:**
+---
 
-1. Buat virtual environment
-2. Install dependencies
-3. Jalankan Flask app di http://localhost:5000
+## 🚀 Memulai
 
-### Opsi 2: Setup Manual
+Ikuti langkah-langkah berikut untuk melakukan setup dan menjalankan server di komputer lokal Anda.
 
-```powershell
-# 1. Setup environment
-.\setup.bat
+### Prasyarat
 
-# 2. Jalankan aplikasi
-.\run.bat
+* **Python 3.10**
+* `pip` (manajer paket Python)
+* `git`
+
+### 1. Clone Repositori
+```bash
+git clone [https://github.com/your-username/uts-kel-7-ar-backend.git](https://github.com/your-username/uts-kel-7-ar-backend.git)
+cd uts-kel-7-ar-backend
 ```
 
-### Opsi 3: Setup Manual Virtual Environment
+### 2. Buat dan Aktifkan Virtual Environment (venv)
 
-**Untuk Windows (Command Prompt atau PowerShell):**
+Menggunakan *virtual environment* sangat penting untuk menjaga agar dependensi proyek tetap terisolasi.
 
+**Untuk Windows (Command Prompt / PowerShell):**
 ```powershell
-# Buat venv (pastikan Anda menggunakan interpreter Python 3.10)
+# Buat virtual environment
 py -3.10 -m venv venv
 
-# Aktifkan venv
+# Aktifkan
 .\venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Jalankan server
-flask run
 ```
 
 **Untuk macOS / Linux:**
-
 ```bash
-# Buat venv (pastikan Anda menggunakan interpreter Python 3.10)
+# Buat virtual environment
 python3.10 -m venv venv
 
-# Aktifkan venv
+# Aktifkan
 source venv/bin/activate
+```
+*(Anda sekarang seharusnya melihat `(venv)` di awal baris terminal Anda.)*
 
-# Install dependencies
+### 3. Instalasi Dependensi
+Dengan venv yang aktif, instal semua paket yang dibutuhkan dari `requirements.txt`:
+```bash
 pip install -r requirements.txt
+```
 
-# Jalankan server
+### 4. Jalankan Server
+Gunakan perintah standar `flask run` untuk memulai server pengembangan.
+```bash
 flask run
 ```
-
-**Aplikasi akan berjalan di: `http://localhost:5000`**
-
----
-
-## Setup dan Instalasi
-
-### Opsi 1: Quick Setup (Recommended)
-
-```powershell
-# Setup lengkap dan langsung jalankan aplikasi
-.\quick_setup.bat
-```
-
-**Ini akan otomatis:**
-
-1. Buat virtual environment
-2. Jalankan virtual environment
-3. Install dependencies
-4. Jalankan Flask app di http://localhost:5000
-
-### Opsi 2: Manual Setup
-
-```powershell
-# 1. Setup environment
-.\setup.bat
-
-# 2. Jalankan aplikasi
-.\run.bat
-```
-
-**Aplikasi akan berjalan di: `http://localhost:5000`**
+Server akan berjalan, memuat model AI, dan akan tersedia di `http://127.0.0.1:5000`.
 
 ---
 
-## API Endpoints
+## 🧪 Dokumentasi API
 
-### **1. POST `/api/predict` (Primary Endpoint)**
+Berikut adalah daftar *endpoint* yang tersedia.
 
-**Gender detection dari base64 image:**
+### Endpoint Utama untuk Unity
 
-**Request:**
+#### `POST /api/predict`
+Endpoint ini dirancang khusus untuk aplikasi Unity dengan format respons yang disederhanakan.
 
-```json
-{
-  "image_data": "base64_encoded_image_string"
-}
-```
+* **Request Body:**
+    ```json
+    {
+        "image_data": "string_base64_gambar_anda"
+    }
+    ```
+* **Respon Sukses (200 OK):**
+    ```json
+    {
+        "statusCode": 200,
+        "message": "Prediksi berhasil dilakukan.",
+        "data": {
+            "prediction": "male",
+            "confidence": 0.987
+        }
+    }
+    ```
 
-**Response (Success):**
+### Endpoint untuk Pengujian Internal
 
-```json
-{
-  "prediction": "male",
-  "confidence": 0.95
-}
-```
+#### `POST /upload`
+Menerima unggahan file gambar dari form HTML.
 
-**Response (Error):**
+#### `POST /predict_base64`
+Menerima data gambar Base64 dari *frontend tester* (webcam).
 
-```json
-{
-  "error": "No face detected in the image",
-  "status": "error"
-}
-```
-
-### **2. POST `/classify` (Unity Endpoint)**
-
-**Endpoint khusus untuk aplikasi Unity:**
-
-**Request:**
-
-```json
-{
-  "image_data": "string_base64_dari_gambar_disini"
-}
-```
-
-**Response (Success):**
-
-```json
-{
-  "prediction": "male",
-  "confidence": 0.95
-}
-```
-
-### **3. GET `/health`**
-
-**Check API status:**
-
-**Response:**
-
-```json
-{
-  "status": "healthy",
-  "model_status": "loaded"
-}
-```
-
----
-
-## Convert Image ke Base64
-
-**Gunakan script converter:**
-
-```python
-# Convert gambar ke base64
-python image_to_base64.py path/to/your/image.jpg
-```
-
----
-
-## Cara Pengujian
-
-### Testing dengan Postman
-
-Anda dapat menguji _endpoint_ ini tanpa memerlukan aplikasi Unity dengan menggunakan _tools_ seperti **Postman** atau **Insomnia**.
-
-**Setup Request:**
-
-1. **Method:** POST
-2. **URL:** `http://localhost:5000/api/predict` atau `http://localhost:5000/classify`
-3. **Headers:** `Content-Type: application/json`
-4. **Body (raw JSON):**
-   ```json
-   {
-     "image_data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-   }
-   ```
-
-### Testing dengan Unity
-
-Kirim _request_ `POST` ke URL server lokal dengan _body_ JSON yang sesuai dari aplikasi Unity Anda.
+* **Respon (untuk `/upload` dan `/predict_base64`):**
+    ```json
+    {
+        "success": true,
+        "faces_detected": 1,
+        "results": [
+            {
+                "gender": "Male",
+                "confidence": 0.987,
+                "bbox": {"x": 120, "y": 80, "width": 250, "height": 250}
+            }
+        ]
+    }
+    ```
