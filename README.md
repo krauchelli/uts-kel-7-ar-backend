@@ -1,3 +1,13 @@
+---
+title: Uts Kel 7 Ar Backend
+emoji: 💻
+colorFrom: indigo
+colorTo: indigo
+sdk: docker
+pinned: false
+short_description: backend service to serve AR project
+---
+
 # Layanan Backend untuk UTS Augmented Reality - Kelompok 7
 
 Ini adalah layanan backend untuk proyek UTS Augmented Reality, dibangun dengan struktur Flask yang modular dan skalabel. Layanan ini menyediakan REST API yang berfungsi sebagai "otak" AI untuk aplikasi Unity, menangani deteksi wajah dan klasifikasi gender.
@@ -136,13 +146,3 @@ Menerima data gambar Base64 dari *frontend tester* (webcam).
         ]
     }
     ```
-
----
-title: Uts Kel 7 Ar Backend
-emoji: 💻
-colorFrom: indigo
-colorTo: indigo
-sdk: docker
-pinned: false
-short_description: backend service to serve AR project
----
