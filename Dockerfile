@@ -1,45 +1,30 @@
-# --- Tahap 1: Build Environment ---
-# Menggunakan image Python yang lebih lengkap untuk menginstal dependensi,
-# termasuk yang mungkin memerlukan kompilasi.
-FROM python:3.10-slim as builder
-
-# Menentukan direktori kerja di dalam kontainer
-WORKDIR /usr/src/app
-
-# Mencegah Python menulis file .pyc untuk menjaga image tetap kecil
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Menginstal dependensi sistem yang mungkin dibutuhkan oleh OpenCV
-RUN apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0
-
-# Menyalin file requirements.txt terlebih dahulu untuk caching
-COPY requirements.txt .
-
-# Menginstal semua dependensi Python
-RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requirements.txt
-
-
-# --- Tahap 2: Production Environment ---
-# Menggunakan image Python yang sangat ringan untuk hasil akhir
+# Menggunakan image dasar Python 3.9 atau 3.10
 FROM python:3.10-slim
 
-# Menentukan direktori kerja
-WORKDIR /usr/src/app
+# Menambahkan user non-root untuk keamanan (praktik terbaik)
+RUN useradd -m -u 1000 user
+USER user
 
-# Menyalin dependensi yang sudah di-build dari tahap sebelumnya
-COPY --from=builder /usr/src/app/wheels /wheels
-COPY --from=builder /usr/src/app /usr/src/app
+# Mengatur environment variables
+ENV PATH="/home/user/.local/bin:$PATH"
+WORKDIR /app
 
-# Menginstal dependensi dari "wheels" tanpa perlu men-download ulang
-RUN pip install --no-cache /wheels/*
+# Menginstal dependensi sistem yang dibutuhkan oleh OpenCV
+# Kita perlu beralih ke root sementara untuk instalasi ini
+USER root
+RUN apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0
+USER user
 
-# Menyalin seluruh kode aplikasi ke dalam direktori kerja
-COPY . .
+# Salin file requirements dan instal dependensi
+COPY --chown=user ./requirements.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-# Memberi tahu Docker bahwa kontainer akan berjalan di port 5000
-EXPOSE 5000
+# Salin seluruh kode aplikasi
+COPY --chown=user . /app
+
+# Buka port 7860 sesuai syarat dari Hugging Face Spaces
+EXPOSE 7860
 
 # Perintah untuk menjalankan aplikasi saat kontainer dimulai
-# Menggunakan gunicorn sebagai server produksi yang lebih tangguh daripada server bawaan Flask
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]
+# Gunicorn akan menjalankan 'app' dari file 'run.py' di port 7860
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "run:app"]
