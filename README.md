@@ -136,3 +136,13 @@ Menerima data gambar Base64 dari *frontend tester* (webcam).
         ]
     }
     ```
+
+---
+title: Uts Kel 7 Ar Backend
+emoji: 💻
+colorFrom: indigo
+colorTo: indigo
+sdk: docker
+pinned: false
+short_description: backend service to serve AR project
+---
