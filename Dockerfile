@@ -1,4 +1,4 @@
-# Menggunakan image dasar Python 3.9 atau 3.10
+# Menggunakan image dasar Python 3.10
 FROM python:3.10-slim
 
 # Menambahkan user non-root untuk keamanan (praktik terbaik)
@@ -9,11 +9,14 @@ USER user
 ENV PATH="/home/user/.local/bin:$PATH"
 WORKDIR /app
 
+# --- PERBAIKAN DI SINI ---
 # Menginstal dependensi sistem yang dibutuhkan oleh OpenCV
 # Kita perlu beralih ke root sementara untuk instalasi ini
 USER root
-RUN apt-get update && apt-get install -y libgl1-mesa-glx libglib2.0-0
+# Mengganti 'libgl1-mesa-glx' dengan 'libgl1'
+RUN apt-get update && apt-get install -y libgl1 libglib2.0-0
 USER user
+# --- PERBAIKAN SELESAI ---
 
 # Salin file requirements dan instal dependensi
 COPY --chown=user ./requirements.txt requirements.txt
@@ -26,5 +29,4 @@ COPY --chown=user . /app
 EXPOSE 7860
 
 # Perintah untuk menjalankan aplikasi saat kontainer dimulai
-# Gunicorn akan menjalankan 'app' dari file 'run.py' di port 7860
 CMD ["gunicorn", "--bind", "0.0.0.0:7860", "run:app"]
