@@ -1,0 +1,21 @@
+# Abaikan virtual environment
+venv/
+.venv/
+
+# Abaikan cache Python
+__pycache__/
+*.pyc
+
+# Abaikan file konfigurasi IDE
+.vscode/
+.idea/
+
+# Abaikan file sistem operasi
+.DS_Store
+
+# Abaikan file Git
+.git/
+.gitignore
+
+# Abaikan file Docker itu sendiri
+Dockerfile
