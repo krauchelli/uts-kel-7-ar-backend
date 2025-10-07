@@ -11,6 +11,19 @@ Ini adalah layanan backend untuk proyek UTS Augmented Reality, dibangun dengan s
 
 ---
 
+# Layanan Backend untuk UTS Augmented Reality - Kelompok 7
+
+Ini adalah layanan backend untuk proyek UTS Augmented Reality, dibangun dengan struktur Flask yang modular dan skalabel. Layanan ini menyediakan REST API yang berfungsi sebagai "otak" AI untuk aplikasi Unity, menangani deteksi wajah dan klasifikasi gender.
+
+## ✨ Fitur
+
+* **Arsitektur Modular**: Logika dipisahkan secara bersih ke dalam *routes*, *controllers*, dan *services*, terinspirasi dari pola *framework* web modern.
+* **Logika AI Dua Tahap**: Mengimplementasikan alur kerja deteksi wajah terlebih dahulu menggunakan OpenCV, baru kemudian melakukan klasifikasi pada area wajah yang terdeteksi.
+* **Penanganan Error Terpusat**: Menggunakan *middleware* global untuk menangani error dari sisi klien (400) dan sisi server (500) dengan format respons JSON yang konsisten.
+* **Fasilitas Pengujian Lengkap**: Menyertakan antarmuka web sederhana untuk pengujian mudah melalui unggah file (`/`) dan webcam langsung (`/webcam`).
+
+---
+
 ## 📂 Struktur Proyek
 
 Proyek ini menggunakan pola *application factory* untuk organisasi yang lebih baik:
